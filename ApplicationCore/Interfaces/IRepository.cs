@@ -6,7 +6,7 @@ namespace ABManagerWeb.ApplicationCore.Interfaces
 {
     public interface IRepository<T> : IDisposable where T : BaseEntity
     {
-        T GetById(int id);
+        T GetById(string id);
         IReadOnlyList<T> ListAll();
         IReadOnlyList<T> List(ISpecification<T> spec);
         T Add(T entity);

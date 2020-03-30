@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using ABManagerWeb.Infrastructure.Data.ABManager;
 using Microsoft.EntityFrameworkCore;
 using ABManagerWeb.ApplicationCore.Interfaces;
+using ABManagerWeb.ApplicationCore.Services;
 
 namespace ABManagerWeb.ABManagerWeb
 {
@@ -30,6 +31,7 @@ namespace ABManagerWeb.ABManagerWeb
             services.AddDbContext<ABManagerContext>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("ABManagerLocal")));
             services.AddScoped<IManifestInfoRepository, ManifestInfoRepository>();
+            services.AddScoped<IManifestManager, ManifestManager>();
             services.AddControllers();
         }
 

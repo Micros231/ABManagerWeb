@@ -17,9 +17,9 @@ namespace ABManagerWeb.ApplicationCore.Helpers.Paths
         {
             return $"_version({version})";
         }
-        public static string GetManifestVersionFileName(string version)
+        public static string GetManifestFileName()
         {
-            return $"manifest{GetVersionName(version)}";
+            return $"manifest.json";
         }
     }
 }

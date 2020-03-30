@@ -3,14 +3,16 @@ using ABManagerWeb.Infrastructure.Data.ABManager;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ABManagerWeb.Infrastructure.Data.ABManager.Migrations
 {
     [DbContext(typeof(ABManagerContext))]
-    partial class ABManagerContextModelSnapshot : ModelSnapshot
+    [Migration("20200330090151_MigrateToRemoteDB")]
+    partial class MigrateToRemoteDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,7 +23,6 @@ namespace ABManagerWeb.Infrastructure.Data.ABManager.Migrations
             modelBuilder.Entity("ABManagerWeb.ApplicationCore.Entities.ManifestInfo", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Path")

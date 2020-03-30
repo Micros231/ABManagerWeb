@@ -22,6 +22,7 @@ namespace ABManagerWeb.Infrastructure.Data.ABManager
             modelBuilder.Entity<ManifestInfo>(options =>
             {
                 options.HasKey(manifest => new { manifest.Id, manifest.Path, manifest.Version });
+                options.Property(manifest => manifest.Id).IsRequired(true).ValueGeneratedOnAdd();
                 options.Property(manifest => manifest.Version).IsRequired(true);
                 options.Property(manifest => manifest.Path).IsRequired(true);
             });

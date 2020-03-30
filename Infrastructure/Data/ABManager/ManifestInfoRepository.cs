@@ -28,7 +28,7 @@ namespace ABManagerWeb.Infrastructure.Data.ABManager
 
         public async Task<ManifestInfo> GetCurrentManifest()
         {
-            return await _dbContext.Set<ManifestInfo>().AsQueryable().LastOrDefaultAsync();
+            return await _dbContext.Set<ManifestInfo>().AsQueryable().FirstOrDefaultAsync();
         }
     }
 }

@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ABManagerWeb.ApplicationCore.Entities;
 using ABManagerWeb.ApplicationCore.Helpers.Paths;
+using ABManagerWeb.ApplicationCore.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace ABManagerWeb.Web.Controllers
@@ -16,63 +20,85 @@ namespace ABManagerWeb.Web.Controllers
     [ApiController]
     public class ContentController : ControllerBase
     {
-
-        private readonly IWebHostEnvironment _appEnvironment;
+        private readonly IManifestManager _manager;
         private readonly ILogger<ContentController> _logger;
-        public ContentController(IWebHostEnvironment appEnvironment, ILogger<ContentController> logger)
+        public ContentController(IManifestManager manager, ILogger<ContentController> logger)
         {
-            _appEnvironment = appEnvironment;
+            _manager = manager;
             _logger = logger;
         }
 
         public string AssetBundleHosting { get; private set; }
 
-        [HttpGet("{version}/manifest/{id?}")]
-        public IActionResult GetManifest(string version, int id)
+        [HttpGet("{version}/manifest")]
+        public async Task<IActionResult> DownloadManifest(string version)
         {
-            var jObjecct = new { Version = version, ID = id };
-            _logger.LogInformation(ABHostingPaths.GetMainPath());
-            return new JsonResult(jObjecct);
+            _logger.LogInformation($"GetManifest");
+            var manifestInfo = await _manager.GetManifestByVersionAsync(version);
+            if (manifestInfo != null)
+            {
+                return GetDownloadedManifestFile(manifestInfo);
+            }
+            return BadRequest();
         }
-
+        [HttpGet("{version}/manifest/info")]
+        public async Task<IActionResult> GetManifestInfo(string version)
+        {
+            _logger.LogInformation($"GetManifestInfo");
+            var manifestInfo = await _manager.GetManifestByVersionAsync(version);
+            if (manifestInfo != null)
+            {
+                return new JsonResult(manifestInfo);
+            }
+            return BadRequest();
+        }
+        [HttpGet("manifest")]
+        public async Task<IActionResult> DownloadCurrentManifest()
+        {
+            _logger.LogInformation($"GetManifest");
+            var manifestInfo = await _manager.GetCurrentManifestAsync();
+            if (manifestInfo != null)
+            {
+                return GetDownloadedManifestFile(manifestInfo);
+            }
+            return BadRequest();
+        }
+        [HttpGet("manifest/info")]
+        public async Task<IActionResult> GetCurrentManifestInfo()
+        {
+            _logger.LogInformation($"GetManifest");
+            var manifestInfo = await _manager.GetCurrentManifestAsync();
+            if (manifestInfo != null)
+            {
+                return new JsonResult(manifestInfo);
+            }
+            return BadRequest();
+        }
         [HttpPost("[action]")]
         public async Task<IActionResult> UploadManifest(IFormFile manifestFile)
         {
-            _logger.LogInformation("UploadManifest Start");
+            _logger.LogDebug("UploadManifest");
             if (manifestFile != null)
             {
-                _logger.LogInformation($"ManifestFile is not null {manifestFile.ToString()}");
-                string jsonManifest = string.Empty;
-                string versionManifest = string.Empty;
-                using (var readStream = manifestFile.OpenReadStream())
-                using (var reader = new StreamReader(readStream))
+                _logger.LogDebug("Manifest file is not null");
+                string version = await _manager.GetManifestVersionByStreamAsync(() => manifestFile.OpenReadStream());
+                await _manager.AddManifestAsync(version, (fileStream) => manifestFile.CopyToAsync(fileStream));
+                var currentManifest = await _manager.GetCurrentManifestAsync();
+                if (currentManifest != null)
                 {
-                    jsonManifest = reader.ReadToEnd();
-                    _logger.LogInformation($"Get jsonManifest");
-                }
-                if (!string.IsNullOrEmpty(jsonManifest))
-                {
-                    versionManifest = JObject.Parse(jsonManifest)["_version"].Value<string>();
-                    _logger.LogInformation($"Get Version. Version: {versionManifest}");
-                }
-                if (!string.IsNullOrEmpty(versionManifest))
-                {
-
-                    string pathToVersion = Path.Combine(AssetBundleHosting, $"_version({versionManifest})");
-                    string completePath = Path.Combine(_appEnvironment.ContentRootPath, pathToVersion);
-                    _logger.LogInformation($"Path to hosting: {completePath}");
-                    if (!Directory.Exists(completePath))
-                    {
-                        Directory.CreateDirectory(completePath);
-                        using (var fileStream = new FileStream(Path.Combine(completePath,$"manifest_{versionManifest}.json"), FileMode.Create))
-                        {
-                            await manifestFile.CopyToAsync(fileStream);
-                        }
-                        return Ok();
-                    }
+                    return Ok();
                 }
             }
             return BadRequest();
+        }
+
+        private FileStreamResult GetDownloadedManifestFile(ManifestInfo manifestInfo)
+        {
+            string path = Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path);
+            var manifestFile = new FileStream(path, FileMode.Open);
+            var contentType = "application/json";
+            var fileName = "manifest.json";
+            return File(manifestFile, contentType, fileName);
         }
     }
 }

@@ -8,6 +8,8 @@
   <ItemGroup>
     <Compile Remove="Data\ABManager\Migrations\20200328135824_InitialABManagerContext.cs" />
     <Compile Remove="Data\ABManager\Migrations\20200328135824_InitialABManagerContext.Designer.cs" />
+    <Compile Remove="Data\ABManager\Migrations\20200330143156_ManifestInfoIdIsRequiredAndValueGenOnAdd.cs" />
+    <Compile Remove="Data\ABManager\Migrations\20200330143156_ManifestInfoIdIsRequiredAndValueGenOnAdd.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

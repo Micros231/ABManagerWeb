@@ -18,7 +18,7 @@ namespace ABManagerWeb.Infrastructure.Data
             _dbContext = dbContext;
         }
 
-        public virtual async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T> GetByIdAsync(string id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
         }
@@ -59,7 +59,7 @@ namespace ABManagerWeb.Infrastructure.Data
             await _dbContext.SaveChangesAsync();
         }
 
-        public virtual T GetById(int id)
+        public virtual T GetById(string id)
         {
             return _dbContext.Set<T>().Find(id);
         }
