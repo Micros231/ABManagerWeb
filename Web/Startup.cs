@@ -8,7 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
+using ABManagerWeb.Infrastructure.Data.ABManager;
+using Microsoft.EntityFrameworkCore;
+using ABManagerWeb.ApplicationCore.Interfaces;
+using ABManagerWeb.ApplicationCore.Services;
 
 namespace ABManagerWeb.ABManagerWeb
 {
@@ -23,6 +28,10 @@ namespace ABManagerWeb.ABManagerWeb
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<ABManagerContext>(
+                options => options.UseSqlServer(Configuration.GetConnectionString("ABManagerLocal")));
+            services.AddScoped<IManifestInfoRepository, ManifestInfoRepository>();
+            services.AddScoped<IManifestManager, ManifestManager>();
             services.AddControllers();
         }
 
@@ -34,7 +43,6 @@ namespace ABManagerWeb.ABManagerWeb
             }
 
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ABManagerWeb.ApplicationCore.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,26 +14,23 @@ namespace ABManagerWeb.Web.Controllers
     [Route("[controller]")]
     public class VersionsController : ControllerBase
     {
-        private readonly string _curentVersion = "0";
-        private ILogger<VersionsController> _logger;
-        public VersionsController(ILogger<VersionsController> logger)
+        private readonly ILogger<VersionsController> _logger;
+        private readonly IManifestManager _manifestManager;
+        public VersionsController(ILogger<VersionsController> logger, IManifestManager manifestManager)
         {
             _logger = logger;
+            _manifestManager = manifestManager;
         }
-        [Route("")]
-        public ActionResult GetVersions()
+        [HttpGet("current")]
+        public async Task<ActionResult> GetCurrentVersion()
         {
-            var jsonObj = new
+            _logger.LogInformation("GetVersions");
+            var manifestInfo = await _manifestManager.GetCurrentManifestInfoAsync();
+            if (manifestInfo != null)
             {
-                Version = _curentVersion,
-                Manifest = new
-                {
-                    CRC = 256,
-                    Hash = 256.GetHashCode()
-                }
-            };
-            _logger.LogInformation($"Versions: {jsonObj.Version}");
-            return new JsonResult(jsonObj);
+                return Ok(manifestInfo.Version);
+            }
+            return BadRequest();
         }
     }
 }

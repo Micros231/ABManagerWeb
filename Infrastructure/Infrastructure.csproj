@@ -6,6 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\ABManager\Migrations\20200328135824_InitialABManagerContext.cs" />
+    <Compile Remove="Data\ABManager\Migrations\20200328135824_InitialABManagerContext.Designer.cs" />
+    <Compile Remove="Data\ABManager\Migrations\20200330143156_ManifestInfoIdIsRequiredAndValueGenOnAdd.cs" />
+    <Compile Remove="Data\ABManager\Migrations\20200330143156_ManifestInfoIdIsRequiredAndValueGenOnAdd.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="NLog" Version="4.7.0" />
   </ItemGroup>
 
