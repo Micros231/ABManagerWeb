@@ -21,8 +21,8 @@ namespace ABManagerWeb.Web.Controllers
             _logger = logger;
             _manifestManager = manifestManager;
         }
-        [HttpGet()]
-        public async Task<ActionResult> GetVersions()
+        [HttpGet("current")]
+        public async Task<ActionResult> GetCurrentVersion()
         {
             _logger.LogInformation("GetVersions");
             var manifestInfo = await _manifestManager.GetCurrentManifestInfoAsync();
