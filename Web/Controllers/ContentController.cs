@@ -34,10 +34,14 @@ namespace ABManagerWeb.Web.Controllers
         public async Task<IActionResult> DownloadManifest(string version)
         {
             _logger.LogInformation($"GetManifest");
-            var manifestInfo = await _manager.GetManifestByVersionAsync(version);
+            var manifestInfo = await _manager.GetManifestInfoByVersionAsync(version);
             if (manifestInfo != null)
             {
-                return GetDownloadedManifestFile(manifestInfo);
+                var fileStream = _manager.GetManifestFileByInfo(manifestInfo);
+                if (fileStream != null)
+                {
+                    return GetManifestFileResultByStream(fileStream);
+                }
             }
             return BadRequest();
         }
@@ -45,7 +49,7 @@ namespace ABManagerWeb.Web.Controllers
         public async Task<IActionResult> GetManifestInfo(string version)
         {
             _logger.LogInformation($"GetManifestInfo");
-            var manifestInfo = await _manager.GetManifestByVersionAsync(version);
+            var manifestInfo = await _manager.GetManifestInfoByVersionAsync(version);
             if (manifestInfo != null)
             {
                 return new JsonResult(manifestInfo);
@@ -56,10 +60,14 @@ namespace ABManagerWeb.Web.Controllers
         public async Task<IActionResult> DownloadCurrentManifest()
         {
             _logger.LogInformation($"GetManifest");
-            var manifestInfo = await _manager.GetCurrentManifestAsync();
+            var manifestInfo = await _manager.GetCurrentManifestInfoAsync();
             if (manifestInfo != null)
             {
-                return GetDownloadedManifestFile(manifestInfo);
+                var fileStream = _manager.GetManifestFileByInfo(manifestInfo);
+                if (fileStream != null)
+                {
+                    return GetManifestFileResultByStream(fileStream);
+                }
             }
             return BadRequest();
         }
@@ -67,7 +75,7 @@ namespace ABManagerWeb.Web.Controllers
         public async Task<IActionResult> GetCurrentManifestInfo()
         {
             _logger.LogInformation($"GetManifest");
-            var manifestInfo = await _manager.GetCurrentManifestAsync();
+            var manifestInfo = await _manager.GetCurrentManifestInfoAsync();
             if (manifestInfo != null)
             {
                 return new JsonResult(manifestInfo);
@@ -83,7 +91,7 @@ namespace ABManagerWeb.Web.Controllers
                 _logger.LogDebug("Manifest file is not null");
                 string version = await _manager.GetManifestVersionByStreamAsync(() => manifestFile.OpenReadStream());
                 await _manager.AddManifestAsync(version, (fileStream) => manifestFile.CopyToAsync(fileStream));
-                var currentManifest = await _manager.GetCurrentManifestAsync();
+                var currentManifest = await _manager.GetCurrentManifestInfoAsync();
                 if (currentManifest != null)
                 {
                     return Ok();
@@ -92,13 +100,13 @@ namespace ABManagerWeb.Web.Controllers
             return BadRequest();
         }
 
-        private FileStreamResult GetDownloadedManifestFile(ManifestInfo manifestInfo)
+        private FileStreamResult GetFileResultByStream(FileStream fileStream, string fileName, string contentType)
         {
-            string path = Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path);
-            var manifestFile = new FileStream(path, FileMode.Open);
-            var contentType = "application/json";
-            var fileName = "manifest.json";
-            return File(manifestFile, contentType, fileName);
+            return File(fileStream, contentType, fileName);
+        }
+        private FileStreamResult GetManifestFileResultByStream(FileStream fileStream)
+        {
+            return GetFileResultByStream(fileStream, "manifest.json", "application/json");
         }
     }
 }

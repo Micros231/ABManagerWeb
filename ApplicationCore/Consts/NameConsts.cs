@@ -6,6 +6,6 @@ namespace ABManagerWeb.ApplicationCore.Consts
 {
     public static class NameConsts
     {
-        public const string AssetBundleHosting = "AssetBundleHosting";
+        public const string AssetBundleHostingDirectoryName = "AssetBundleHosting";
     }
 }

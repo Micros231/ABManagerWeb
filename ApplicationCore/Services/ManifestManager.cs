@@ -22,74 +22,45 @@ namespace ABManagerWeb.ApplicationCore.Services
             _repository = repository;
             _logger = logger;
         }
-        public async Task AddManifestAsync(string version, Func<Stream, Task> addManifestHandler)
+
+        public async Task<ManifestInfo> AddManifestAsync(string version, Func<Stream, Task> addManifestHandler)
         {
             _logger.LogInformation("AddManifestStart");
             version = await GetFinalVersion(version);
-            string pathToFile = CreateDirectoryAndGetPath(version);
-            string completePathToFile = Path.Combine(ABHostingPaths.GetMainPath(), pathToFile);
-            using (var fileStream = File.Create(completePathToFile))
-            {
-                await addManifestHandler?.Invoke(fileStream);
-            }
-            ManifestInfo manifest = new ManifestInfo(version, pathToFile);
-            if (CheckExitsManifesInfoFile(manifest))
-            {
-                await _repository.AddAsync(manifest);
-            }
-
+            await CreateManifestFile(version, addManifestHandler);
+            string relativePathToManifest = GetRelativePathByVersion(version);
+            ManifestInfo manifest = new ManifestInfo(version, relativePathToManifest);
+            return await _repository.AddAsync(manifest);
         }
-        public async Task<ManifestInfo> GetCurrentManifestAsync()
+        public async Task<ManifestInfo> GetCurrentManifestInfoAsync()
         {
             _logger.LogInformation("GetCurrentManifestAsync");
-            var manifestInfo = await _repository.GetCurrentManifest();
-            if (CheckExitsManifesInfoFile(manifestInfo))
-            {
-                return manifestInfo;
-            }
-            
-            return null;
+            return await _repository.GetCurrentManifestAsync();
         }
-        public async Task<ManifestInfo> GetManifestByIdAsync(string id)
+        public async Task<ManifestInfo> GetManifestInfoByIdAsync(string id)
         {
             _logger.LogInformation("GetManifestByIdAsync");
             if (!string.IsNullOrEmpty(id))
             {
-                var manifestInfo = await _repository.GetByIdAsync(id);
-                if (CheckExitsManifesInfoFile(manifestInfo))
-                {
-                    return manifestInfo;
-                }
+                return await _repository.GetByIdAsync(id);
             }
             return null;
         }
-        public async Task<ManifestInfo> GetManifestByPathAsync(string path)
+        public async Task<ManifestInfo> GetManifestInfoByPathAsync(string path)
         {
             _logger.LogInformation("GetManifestToPathAsync");
             if (!string.IsNullOrEmpty(path))
             {
-                if (path.Contains(NameConsts.AssetBundleHosting))
-                {
-                    string finalPath = path.Remove(0, path.IndexOf(NameConsts.AssetBundleHosting));
-                    var manifestInfo = await _repository.GetByPath(finalPath);
-                    if (CheckExitsManifesInfoFile(manifestInfo))
-                    {
-                        return manifestInfo;
-                    }
-                }
+                return await _repository.GetByPathAsync(path);
             }
             return null;
         }
-        public async Task<ManifestInfo> GetManifestByVersionAsync(string version)
+        public async Task<ManifestInfo> GetManifestInfoByVersionAsync(string version)
         {
             _logger.LogInformation("GetManifestToVersionAsync");
             if (!string.IsNullOrEmpty(version))
             {
-                var manifestInfo = await _repository.GetByVersion(version);
-                if (CheckExitsManifesInfoFile(manifestInfo))
-                {
-                    return manifestInfo;
-                }
+                return await _repository.GetByVersionAsync(version);
             }
             return null;
         }
@@ -111,59 +82,63 @@ namespace ABManagerWeb.ApplicationCore.Services
             _logger.LogInformation($"Version: {versionManifest}");
             return versionManifest;
         }
-
+        public FileStream GetManifestFileByInfo(ManifestInfo manifestInfo)
+        {
+            if (manifestInfo != null)
+            {
+                if (CheckExitsManifestInfoFile(manifestInfo))
+                {
+                    string filePath = Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path);
+                    var fileStream = new FileStream(filePath, FileMode.Open);
+                    return fileStream;
+                }
+            }
+            return null;
+        }
         public async Task RemoveManifestToIdAsync(string id)
         {
             _logger.LogInformation("RemoveManifestToIdAsync");
-            var manifestInfo = await GetManifestByIdAsync(id);
-            if (manifestInfo != null)
+            if (!string.IsNullOrEmpty(id))
             {
-                DeleteManifestFile(manifestInfo);                
-                await _repository.DeleteAsync(manifestInfo);
-            }
-            else
-            {
-                manifestInfo = await _repository.GetByIdAsync(id);
+                var manifestInfo = await GetManifestInfoByIdAsync(id);
                 if (manifestInfo != null)
                 {
+                    if (CheckExitsManifestInfoFile(manifestInfo))
+                    {
+                        DeleteManifestFile(manifestInfo);
+                    }
                     await _repository.DeleteAsync(manifestInfo);
                 }
             }
-
         }
-
         public async Task RemoveManifestToPathAsync(string path)
         {
             _logger.LogInformation("RemoveManifestToPathAsync");
-            var manifestInfo = await GetManifestByPathAsync(path);
-            if (manifestInfo != null)
+            if (!string.IsNullOrEmpty(path))
             {
-                DeleteManifestFile(manifestInfo);
-                await _repository.DeleteAsync(manifestInfo);
-            }
-            else
-            {
-                manifestInfo = await _repository.GetByPath(path);
+                var manifestInfo = await GetManifestInfoByPathAsync(path);
                 if (manifestInfo != null)
                 {
+                    if (CheckExitsManifestInfoFile(manifestInfo))
+                    {
+                        DeleteManifestFile(manifestInfo);
+                    }
                     await _repository.DeleteAsync(manifestInfo);
                 }
             }
         }
         public async Task RemoveManifestToVersionAsync(string version)
         {
-            _logger.LogInformation("RemoveManifestToPathAsync");
-            var manifestInfo = await GetManifestByVersionAsync(version);
-            if (manifestInfo != null)
+            _logger.LogInformation("RemoveManifestToVersionAsync");
+            if (!string.IsNullOrEmpty(version))
             {
-                DeleteManifestFile(manifestInfo);
-                await _repository.DeleteAsync(manifestInfo);
-            }
-            else
-            {
-                manifestInfo = await _repository.GetByVersion(version);
+                var manifestInfo = await GetManifestInfoByVersionAsync(version);
                 if (manifestInfo != null)
                 {
+                    if (CheckExitsManifestInfoFile(manifestInfo))
+                    {
+                        DeleteManifestFile(manifestInfo);
+                    }
                     await _repository.DeleteAsync(manifestInfo);
                 }
             }
@@ -173,12 +148,29 @@ namespace ABManagerWeb.ApplicationCore.Services
             _logger.LogInformation("RemoveManifestAsync");
             if (manifestInfo != null)
             {
-                if (CheckExitsManifesInfoFile(manifestInfo))
+                if (CheckExitsManifestInfoFile(manifestInfo))
                 {
                     DeleteManifestFile(manifestInfo);
                 }
                 await _repository.DeleteAsync(manifestInfo);
             }
+        }
+        public bool CheckExitsManifestInfoFile(ManifestInfo manifestInfo)
+        {
+            if (manifestInfo != null)
+            {
+                if (File.Exists(Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path)))
+                    return true;
+            }
+            return false;
+        }
+        public string GetRelativePathByVersion(string version)
+        {
+            string pathToFileManifest =
+                Path.Combine(
+                    ABHostingPaths.GetVersionName(version),
+                    ABHostingPaths.GetManifestFileName());
+            return pathToFileManifest;
         }
 
         private async Task<string> GetFinalVersion(string version)
@@ -187,13 +179,13 @@ namespace ABManagerWeb.ApplicationCore.Services
             if (string.IsNullOrEmpty(version))
             {
                 _logger.LogWarning("Version is null. Check current manifest and update version");
-                var currentManifest = await GetCurrentManifestAsync();
+                var currentManifest = await GetCurrentManifestInfoAsync();
                 var currentVersion = currentManifest.Version;
                 version = currentVersion + "_nv";
             }
             _logger.LogDebug($"CheckExistManifestToVersion: {version}");
             int exitsLevel = 0;
-            while (await _repository.GetByVersion(version) != null)
+            while (await _repository.GetByVersionAsync(version) != null)
             {
                 _logger.LogWarning($"Manifest to version: {version} exists");
                 _logger.LogWarning($"UpdateVersion");
@@ -203,12 +195,25 @@ namespace ABManagerWeb.ApplicationCore.Services
             _logger.LogInformation($"Final Version: {version}");
             return version;
         }
-        private string CreateDirectoryAndGetPath(string version)
+        private async Task CreateManifestFile(string version, Func<Stream, Task> addManifestHandler)
         {
-            
-            string completePathToVersion = 
+            CreateDirectoryByVersion(version);
+            string pathToFile = GetRelativePathByVersion(version);
+            string completePathToFile = Path.Combine(ABHostingPaths.GetMainPath(), pathToFile);
+            using (var fileStream = File.Create(completePathToFile))
+            {
+                await addManifestHandler?.Invoke(fileStream);
+            }
+        }
+        private void DeleteManifestFile(ManifestInfo manifestInfo)
+        {
+            File.Delete(Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path));
+        }
+        private void CreateDirectoryByVersion(string version)
+        {
+            string completePathToVersion =
                 Path.Combine(
-                    ABHostingPaths.GetMainPath(), 
+                    ABHostingPaths.GetMainPath(),
                     ABHostingPaths.GetVersionName(version));
             _logger.LogInformation($"Complete path to version: {completePathToVersion}");
             if (!Directory.Exists(completePathToVersion))
@@ -216,25 +221,6 @@ namespace ABManagerWeb.ApplicationCore.Services
                 _logger.LogDebug($"Create Directory: {completePathToVersion}");
                 Directory.CreateDirectory(completePathToVersion);
             }
-            string pathToFileManifest =
-                Path.Combine(
-                    ABHostingPaths.GetVersionName(version),
-                    ABHostingPaths.GetManifestFileName());
-            return pathToFileManifest;
         }
-        private bool CheckExitsManifesInfoFile(ManifestInfo manifestInfo)
-        {
-            if (manifestInfo != null)
-            {
-                if (File.Exists(Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path)))
-                    return true;
-            }
-            return false;
-        }
-        private void DeleteManifestFile(ManifestInfo manifestInfo)
-        {
-            File.Delete(Path.Combine(ABHostingPaths.GetMainPath(), manifestInfo.Path));
-        }
-  
     }
 }

@@ -10,7 +10,7 @@ namespace ABManagerWeb.ApplicationCore.Helpers.Paths
     {
         public static string GetMainPath()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), NameConsts.AssetBundleHosting);
+            return Path.Combine(Directory.GetCurrentDirectory(), NameConsts.AssetBundleHostingDirectoryName);
         }
 
         public static string GetVersionName(string version)

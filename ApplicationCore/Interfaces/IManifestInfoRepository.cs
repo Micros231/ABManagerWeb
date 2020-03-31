@@ -8,8 +8,8 @@ namespace ABManagerWeb.ApplicationCore.Interfaces
 {
     public interface IManifestInfoRepository : IAsyncRepository<ManifestInfo>
     {
-        Task<ManifestInfo> GetByVersion(string version);
-        Task<ManifestInfo> GetByPath(string path);
-        Task<ManifestInfo> GetCurrentManifest();
+        Task<ManifestInfo> GetByVersionAsync(string version);
+        Task<ManifestInfo> GetByPathAsync(string path);
+        Task<ManifestInfo> GetCurrentManifestAsync();
     }
 }

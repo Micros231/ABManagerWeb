@@ -16,17 +16,17 @@ namespace ABManagerWeb.Infrastructure.Data.ABManager
 
         }
 
-        public async Task<ManifestInfo> GetByPath(string path)
+        public async Task<ManifestInfo> GetByPathAsync(string path)
         {
             return await _dbContext.Set<ManifestInfo>().AsQueryable().FirstOrDefaultAsync(manifest => manifest.Path == path);
         }
 
-        public async Task<ManifestInfo> GetByVersion(string version)
+        public async Task<ManifestInfo> GetByVersionAsync(string version)
         {
             return await _dbContext.Set<ManifestInfo>().AsQueryable().FirstOrDefaultAsync(manifest => manifest.Version == version);
         }
 
-        public async Task<ManifestInfo> GetCurrentManifest()
+        public async Task<ManifestInfo> GetCurrentManifestAsync()
         {
             return await _dbContext.Set<ManifestInfo>().AsQueryable().FirstOrDefaultAsync();
         }
