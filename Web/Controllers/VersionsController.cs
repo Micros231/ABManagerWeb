@@ -24,6 +24,7 @@ namespace ABManagerWeb.Web.Controllers
         [HttpGet()]
         public async Task<ActionResult> GetVersions()
         {
+            _logger.LogInformation("GetVersions");
             var manifestInfo = await _manifestManager.GetCurrentManifestInfoAsync();
             if (manifestInfo != null)
             {
