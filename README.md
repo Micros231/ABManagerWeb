@@ -7,16 +7,16 @@ Request -> Responce
 URL/versions/current -> {version:string}
 
 2)GetManifestInfoByVersion (Method: GET)
-URL/{version:string}/manifest/info -> {jsonManifestInfo}
+URL/content/{version:string}/manifest/info -> {jsonManifestInfo}
 
 3)GetCurrentManifestInfo (Method: GET)
-URL/manifest/info -> {jsonManifestInfo}
+URL/content/manifest/info -> {jsonManifestInfo}
 
 4)DownloadManifestFileByVersion (Method: GET)
-URL/{version:string}/manifest -> {jsonFile|application/json}
+URL/content/{version:string}/manifest -> {jsonFile|application/json}
 
-5)DoawnloadCurrentManifestFile (Method: GET)
-URL/manifest -> {jsonFile|application/json}
+5)DownloadCurrentManifestFile (Method: GET)
+URL/content/manifest -> {jsonFile|application/json}
 
 6)UploadManifest (Method: POST|application/json)
-URL/uloadmanifest -> OK
+URL/contnet/uploadManifest -> OK
