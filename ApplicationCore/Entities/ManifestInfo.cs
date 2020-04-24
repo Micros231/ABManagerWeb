@@ -8,7 +8,7 @@ namespace ABManagerWeb.ApplicationCore.Entities
     {
         public string Version { get; private set; }
         public string Path { get; private set; }
-
+        public string Platform {get; private set;}
         public ManifestInfo(string version, string path)
         {
             Version = version;

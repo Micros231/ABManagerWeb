@@ -83,14 +83,14 @@ namespace ABManagerWeb.Web.Controllers
             return BadRequest();
         }
         [HttpPost("[action]")]
-        public async Task<IActionResult> UploadManifest(IFormFile manifestFile)
+        public async Task<IActionResult> UploadManifest(IFormFile formFile)
         {
             _logger.LogDebug("UploadManifest");
-            if (manifestFile != null)
+            if (formFile != null)
             {
                 _logger.LogDebug("Manifest file is not null");
-                string version = await _manager.GetManifestVersionByStreamAsync(() => manifestFile.OpenReadStream());
-                await _manager.AddManifestAsync(version, (fileStream) => manifestFile.CopyToAsync(fileStream));
+                string version = await _manager.GetManifestVersionByStreamAsync(() => formFile.OpenReadStream());
+                await _manager.AddManifestAsync(version, (fileStream) => formFile.CopyToAsync(fileStream));
                 var currentManifest = await _manager.GetCurrentManifestInfoAsync();
                 if (currentManifest != null)
                 {
